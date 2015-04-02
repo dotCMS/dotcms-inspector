@@ -1,4 +1,3 @@
-#!/bin/bash
+echo -e "\n# Cache copied to log folder"
 
-echo -e "\n# Cache:" 
-echo "still need to grab this from the heap, on todo list"
+cp $DOTHOME/webapps/ROOT/dotsecure/h2db/* $INSPECTORHOME/logs
