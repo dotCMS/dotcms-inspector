@@ -16,11 +16,10 @@
 # 	db locks
 #	get db information from context.xml instead of command line (parse where variables are not the default)
 #	include pid of dotcms for cross references
-#	close db conns
-#	echo output to console as well as file
-#	use tar -cvzf to a .tgz
-#	add hostname to start of file to differentiate nodes, cluster info from db
-
+#	DONE close db conns
+#	DONE echo output to console as well as file
+#	DONE use tar -cvzf to a .tgz
+#	DONE add hostname to start of file to differentiate nodes, cluster info from db
 
 #VARIABLES TO SET
 DBNAME=dot256
@@ -37,7 +36,7 @@ DOTLOGFILE=$INSPECTORHOME/logs/di-dotcms-$HOSTNAME-$RUNDATE.txt
 export CLASSPATH=.:$INSPECTORHOME/utils:$INSPECTORHOME/utils/mysql-connector-java-5.1.35-bin.jar:$INSPECTORHOME/utils/postgresql-9.4-1201.jdbc4.jar
 cd $INSPECTORHOME
 
-exec > $SYSLOGFILE 2>&1
+exec &> >(tee -a "$SYSLOGFILE")
 echo "dotCMS Inspector Run: " $RUNDATE 
 
 #what database are we?
@@ -83,7 +82,7 @@ echo "\n##### SYSTEM INFORMATION #####"
 . $INSPECTORHOME/scripts/vm.sh 
 
 
-exec > $DOTLOGFILE 2>&1
+exec &> >(tee -a "$DOTLOGFILE")
 echo "dotCMS Inspector Run: " $RUNDATE 
 echo -e "\n\n##### dotCMS INFORMATION #####" 
 

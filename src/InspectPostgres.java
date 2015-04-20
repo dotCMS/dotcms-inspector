@@ -35,6 +35,7 @@ Connection conn = null;
 				
 				//query for locks " SELECT relation::regclass, * FROM pg_locks WHERE NOT granted; "
 				//query for threads "  select * from pg_stat_activity; "
+				conn.close ():
 				
 
         }

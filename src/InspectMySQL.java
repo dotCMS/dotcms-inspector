@@ -37,8 +37,8 @@ Connection conn = null;
 				/*
 				query for locks:   SHOW OPEN TABLES;
 				query for threads:  SHOW FULL PROCESSLIST;
-*/
-
+				*/
+			conn.close ();
         }
         catch (Exception e) {
              System.out.println(e.getMessage());
