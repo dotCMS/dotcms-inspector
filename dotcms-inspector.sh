@@ -14,7 +14,9 @@
 #	cachestats
 #	db threads
 # 	db locks
-#	JVM memory allocation
+#	get db information from context.xml instead of command line (parse where variables are not the default)
+#	include pid of dotcms for cross references
+
 
 #VARIABLES TO SET
 DBNAME=dot256
