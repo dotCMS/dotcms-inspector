@@ -1,4 +1,5 @@
-#!/bin/bash
+echo -e "\n# Cache copied to log folder"
 
-echo -e "\n# Cache:" 
-echo "still need to grab this from the heap, on todo list"
+tar -cvf $INSPECTORHOME/logs/cache.tar $DOTHOME/webapps/ROOT/dotsecure/h2db/* 
+gzip $INSPECTORHOME/logs/cache.tar
+

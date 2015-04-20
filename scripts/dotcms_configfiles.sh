@@ -13,13 +13,13 @@ cp $DOTHOME/webapps/ROOT/WEB-INF/classes/portal.properties $INSPECTORHOME/logs
 if [ -f $DOTEXT ]; then
 	cp $DOTEXT $INSPECTORHOME/logs/
 else
-	echo "no dotmarketing-config-ext.properties" >> $LOGFILE
+	echo "no dotmarketing-config-ext.properties" 
 fi
 
 if [ -f $PORTALEXT ]; then
 	cp $PORTALEXT $INSPECTORHOME/logs/
 else
-	echo "no portal-ext.properties" >> $LOGFILE
+	echo "no portal-ext.properties"
 fi
 
 
