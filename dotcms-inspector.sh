@@ -16,6 +16,10 @@
 # 	db locks
 #	get db information from context.xml instead of command line (parse where variables are not the default)
 #	include pid of dotcms for cross references
+#	close db conns
+#	echo output to console as well as file
+#	use tar -cvzf to a .tgz
+#	add hostname to start of file to differentiate nodes, cluster info from db
 
 
 #VARIABLES TO SET
@@ -24,11 +28,12 @@ DBUSER=dev
 DBPASS=w03m
 
 #Globals
+HOSTNAME=$(hostname)
 DOTHOME=/opt/dotcms/wwwroot/current/dotserver/tomcat-7.0.54
 INSPECTORHOME=/opt/dotcms/dotcms-inspector
 RUNDATE=$(date +"%Y%m%d-%H%M%S")
-SYSLOGFILE=$INSPECTORHOME/logs/di-system_$RUNDATE.txt
-DOTLOGFILE=$INSPECTORHOME/logs/di-dotcms_$RUNDATE.txt
+SYSLOGFILE=$INSPECTORHOME/logs/di-system-$HOSTNAME-$RUNDATE.txt
+DOTLOGFILE=$INSPECTORHOME/logs/di-dotcms-$HOSTNAME-$RUNDATE.txt
 export CLASSPATH=.:$INSPECTORHOME/utils:$INSPECTORHOME/utils/mysql-connector-java-5.1.35-bin.jar:$INSPECTORHOME/utils/postgresql-9.4-1201.jdbc4.jar
 cd $INSPECTORHOME
 
@@ -103,8 +108,7 @@ echo -e "\n\n##### dotCMS INFORMATION #####"
 . $INSPECTORHOME/scripts/dotcms_gc.sh 
 
 
-#tar -cf "dotcms-inspectoroutput-$RUNDATE.tar" logs
-#gzip dotcms-inspectoroutput-$RUNDATE.tar
+#tar -czf "di-$HOSTNAME--$RUNDATE.tgz" logs
 
 #rm -Rf logs/*
 
