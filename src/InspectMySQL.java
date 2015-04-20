@@ -35,13 +35,8 @@ Connection conn = null;
 				rs.close ();
                 s.close ();
 				/*
-				Statement s2 = conn.CreateStatement ();
-				s2.executeQuery ("SHOW OPEN TABLES;");
-				ResultSet rs2 = s2.getResultSet ();
-				
-				rs2.close ();
-				s2.close ();
-				conn.close();
+				query for locks:   SHOW OPEN TABLES;
+				query for threads:  SHOW FULL PROCESSLIST;
 */
 
         }
