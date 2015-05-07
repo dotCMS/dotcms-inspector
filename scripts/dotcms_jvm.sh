@@ -2,4 +2,4 @@
 
 echo -e "\n# JVM INFORMATION AND MEMORY ALLOCATION:" 
 
-jps -v
+sudo -u dotcms jps -v
