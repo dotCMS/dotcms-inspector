@@ -1,3 +1,5 @@
+#make dotcms home, log path variable
+
 export TIMESTAMP=$(date +%Y%m%d%H%M%S)
     echo "Thread CPU stats for Dotcms process $(cat /var/run/dotcms/dotcms.pid)" >>/opt/dotcms/wwwroot/current/tomcat/logs/thread_cpu_$(hostname -s)_$TIMESTAMP.txt
     echo -n " Memory: " >>/opt/dotcms/wwwroot/current/tomcat/logs/thread_cpu_$(hostname -s)_$TIMESTAMP.txt
