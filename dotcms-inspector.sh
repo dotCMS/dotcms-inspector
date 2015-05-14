@@ -20,8 +20,17 @@
 #	get javahome (esp for jps cmd)
 #	cachestats using jsp from Chris McCracken or REST API
 #	/proc/${PID}/smaps, /proc/${PID}/status, and /proc/${PID}/stat
+#	fail if no dotcms home cmd line argument
+#	robustify tomcatversion capture to account for multiple folders being in dotserver
 
 #GLOBALS
+
+if [ $# -eq 0 ]
+  then
+    echo "Usage: ./dotcms-inspector.sh /path/to/dotcms/root.  Where dotcms root is the folder containing the bin, dotserver, autoupdater, docs, and plugins folders.  Our recommended location for dotcms is /opt/dotcms/wwwroot/current."
+	exit 1
+fi
+
 BASEDIR=$1
 ADMINUSER=$2
 ADMINPASS=$3
@@ -315,6 +324,6 @@ getGCInfo
 
 tar -czf "di-$HOSTNAME--$RUNDATE.tgz" logs
 
-#rm -Rf logs
+rm -Rf logs
 
 exit
