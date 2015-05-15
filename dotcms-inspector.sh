@@ -6,48 +6,15 @@
 #Matt Yarbrough
 #dotCMS
 #
-#Requires command line arguments BASEDIR, ADMINUSER, ADPASS where BASEDIR is the path where dotcms is installed: run ./dotcms-inspector.sh /opt/dotcms/wwwroot/current admin@dotcms.com admin
 ###################
 #
 #TODO: 	ability to turn off certain subscripts
 #	push publish config
-#	cachestats
+#	cachestats using setup from Chris McCracken or REST API
 #	db threads
 # 	db locks
-#	account for other java procs
-#	number of contentlets in index, ls/find of esdata maybe
 #	use mktemp for setup of log storage space
-#	get javahome (esp for jps cmd)
-#	cachestats using jsp from Chris McCracken or REST API
 #	/proc/${PID}/smaps, /proc/${PID}/status, and /proc/${PID}/stat
-#	fail if no dotcms home cmd line argument
-#	robustify tomcatversion capture to account for multiple folders being in dotserver
-
-#GLOBALS
-
-if [ $# -eq 0 ]
-  then
-    echo "Usage: ./dotcms-inspector.sh /path/to/dotcms/root.  Where dotcms root is the folder containing the bin, dotserver, autoupdater, docs, and plugins folders.  Our recommended location for dotcms is /opt/dotcms/wwwroot/current."
-	exit 1
-fi
-
-BASEDIR=$1
-ADMINUSER=$2
-ADMINPASS=$3
-HOSTNAME=$(hostname)
-TOMCATVERSION=$(ls $BASEDIR/dotserver | grep "tomcat*")
-DOTHOME=$BASEDIR/dotserver/$TOMCATVERSION
-INSPECTORHOME=/opt/dotcms/dotcms-inspector
-RUNDATE=$(date +"%Y%m%d-%H%M%S")
-DOTPROCPID=$(pidof java)
-SYSLOGFILE=logs/di-system-$HOSTNAME-$RUNDATE.txt
-DOTLOGFILE=logs/di-dotcms-$HOSTNAME-$RUNDATE.txt
-#DB info commented, we aren't using this information right now and I'd rather not be grabbing credentials unnecessarily
-#DBX=$(grep username="*" $DOTHOME/webapps/ROOT/META-INF/context.xml | grep -v 'username="{your db user}"' | grep -v 'username="{your user}@{your server}"')
-#DBU1=${DBX#*\"}
-#DBUSER=${DBU1%\"\ pa*}
-#DBP1=${DBX#*word=\"}
-#DBPASS=${DBP1%\"\ maxAc*}
 
 #TEST COMMANDS
 command -v awk >/dev/null 2>&1 || { echo >&2 "awk is not installed.  Ending."; exit 1; }	
@@ -59,13 +26,29 @@ command -v lscpu >/dev/null 2>&1 || skipCPU=true
 command -v netstat >/dev/null 2>&1 || skipNetStat=true 
 command -v lspci >/dev/null 2>&1 || skipVM=true
 command -v tee >/dev/null 2>&1 || skipTee=true
-command -v cat >/dev/null 2>&1 ||  { DOTPROCPID=$(ps aux | grep java | grep -v grep | awk '{print $2}'); }
 
-cd $INSPECTORHOME 
+for install in $(ps aux | grep java | grep dotserver | grep org.apache.catalina.startup.Bootstrap | awk '{ print $2 }'); do
+	DOTPROCPID=$install
+	# parse each matching proc to grab -Dcatalina.home
 
-if [ ! -d logs ]; then
-    mkdir logs;
-fi;
+mkdir logs-$DOTPROCPID
+
+BASEDIR=$(pwd)
+ADMINUSER=$2
+ADMINPASS=$3
+HOSTNAME=$(hostname)
+TOMCATVERSION=$(ls $BASEDIR/dotserver | grep "tomcat*")
+RUNDATE=$(date +"%Y%m%d-%H%M%S")
+DOTPROCPID=$(ps aux | grep java | grep dotserver | grep org.apache.catalina.startup.Bootstrap | awk '{ print $2 }')
+LOGFOLDER=logs-$DOTPROCPID
+SYSLOGFILE=$LOGFOLDER/di-system-$HOSTNAME-$RUNDATE.txt
+DOTLOGFILE=$LOGFOLDER/di-dotcms-$HOSTNAME-$RUNDATE.txt
+#DB info commented, we aren't using this information right now and I'd rather not be grabbing credentials unnecessarily
+#DBX=$(grep username="*" $DOTHOME/webapps/ROOT/META-INF/context.xml | grep -v 'username="{your db user}"' | grep -v 'username="{your user}@{your server}"')
+#DBU1=${DBX#*\"}
+#DBUSER=${DBU1%\"\ pa*}
+#DBP1=${DBX#*word=\"}
+#DBPASS=${DBP1%\"\ maxAc*}
 
 if [ skipTee != true ]
 	then 
@@ -75,6 +58,7 @@ if [ skipTee != true ]
 fi
 
 echo "dotCMS Inspector Run: " $RUNDATE 
+echo "JAVA_HOME: " $JAVA_HOME
 
 #SYSTEM FUNCTIONS
 function getDB {
@@ -96,7 +80,7 @@ function getDB {
 	    DB="OTHER"
 		echo "Database not supported in this script"
 	fi
-	cd $INSPECTORHOME
+	cd $BASEDIR
 }
 
 function getOS {
@@ -243,22 +227,24 @@ function getDotCMSMem {
 function getIndexList {
 	echo -e "\n# List Indexes:"
 	ls -l $DOTHOME/webapps/ROOT/dotsecure/esdata/dotCMSContentIndex_3x/nodes/*/indices
+	echo -e "\n# Index Content Volume:"
+	find $DOTHOME/webapps/ROOT/dotsecure/esdata/dotCMSContentIndex_3x/nodes/ | wc -l
 }
 
 function getConfigFiles {
 	echo -e "\n# Config and log are located in the logs folder" 
 
-	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/dotmarketing-config.properties $INSPECTORHOME/logs
+	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/dotmarketing-config.properties $LOGFOLDER
 
-	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/portal.properties $INSPECTORHOME/logs
+	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/portal.properties $LOGFOLDER
 	
-	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/dotcms-config-cluster.properties  $INSPECTORHOME/logs
+	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/dotcms-config-cluster.properties  $LOGFOLDER
 
-	cp $DOTHOME/conf/server.xml $INSPECTORHOME/logs
+	cp $DOTHOME/conf/server.xml $LOGFOLDER
 
-	cp $DOTHOME/webapps/ROOT/dotsecure/logs/dotcms.log  $INSPECTORHOME/logs
+	cp $DOTHOME/webapps/ROOT/dotsecure/logs/dotcms.log  $LOGFOLDER
 	
-	cp $DOTHOME/conf/web.xml $INSPECTORHOME/logs
+	cp $DOTHOME/conf/web.xml $LOGFOLDER
 	
 }
 
@@ -274,7 +260,7 @@ function getJavaDump {
 	#this should loop several times to get an idea of what's really going on
 	echo -e "\n#Java thread dump located at logs/javadump.txt" 
 	PID=$(pgrep -o -x java)
-	sudo -u dotcms jstack $PID >> $INSPECTORHOME/logs/javadump.txt
+	sudo -u dotcms jstack $PID >> $LOGFOLDER/javadump.txt
 }
 
 function getPushConfig {
@@ -300,7 +286,7 @@ function getGCInfo {
 
 	if [ -f $DOTHOME/webapps/ROOT/dotsecure/logs/*gc*.log ]; then
 
-	cp $DOTHOME/webapps/ROOT/dotsecure/logs/*gc*.log 
+	cp $DOTHOME/webapps/ROOT/dotsecure/logs/*gc*.log $LOGFOLDER
 
 	else
 		echo "no GC log in $DOTHOME/webapps/ROOT/dotsecure/logs/"
@@ -322,8 +308,9 @@ getCacheStats
 getAssetsInfo
 getGCInfo
 
-tar -czf "di-$HOSTNAME--$RUNDATE.tgz" logs
+tar -czf "di-$HOSTNAME-PROC$DOTPROCPID-$RUNDATE.tgz" $LOGFOLDER
 
-rm -Rf logs
+rm -Rf $LOGFOLDER
 
+done
 exit
