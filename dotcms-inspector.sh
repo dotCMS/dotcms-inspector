@@ -34,12 +34,12 @@ for install in $(ps aux | grep java | grep dotserver | grep org.apache.catalina.
 mkdir logs-$DOTPROCPID
 
 BASEDIR=$(pwd)
-ADMINUSER=$2
-ADMINPASS=$3
+#ADMINUSER=$2
+#ADMINPASS=$3
 HOSTNAME=$(hostname)
 TOMCATVERSION=$(ls $BASEDIR/dotserver | grep "tomcat*")
 RUNDATE=$(date +"%Y%m%d-%H%M%S")
-DOTPROCPID=$(ps aux | grep java | grep dotserver | grep org.apache.catalina.startup.Bootstrap | awk '{ print $2 }')
+DOTHOME=$BASEDIR/dotserver/$TOMCATVERSION
 LOGFOLDER=logs-$DOTPROCPID
 SYSLOGFILE=$LOGFOLDER/di-system-$HOSTNAME-$RUNDATE.txt
 DOTLOGFILE=$LOGFOLDER/di-dotcms-$HOSTNAME-$RUNDATE.txt
