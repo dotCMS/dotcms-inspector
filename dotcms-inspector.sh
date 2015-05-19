@@ -5,9 +5,7 @@
 #v 0.1
 #Matt Yarbrough
 #dotCMS
-#
 ###################
-#
 #TODO: 	ability to turn off certain subscripts
 #	push publish config
 #	cachestats using setup from Chris McCracken or REST API
@@ -28,18 +26,23 @@ command -v lspci >/dev/null 2>&1 || skipVM=true
 command -v tee >/dev/null 2>&1 || skipTee=true
 
 for install in $(ps aux | grep java | grep dotserver | grep org.apache.catalina.startup.Bootstrap | awk '{ print $2 }'); do
-	DOTPROCPID=$install
-	# parse each matching proc to grab -Dcatalina.home
 
-mkdir logs-$DOTPROCPID
+DOTPROCPID=$install
+DOTOWNER=$(ps aux | grep -v grep | grep $install | awk '{ print $1}')
+echo "DOTOWNER: " $DOTOWNER
 
-BASEDIR=$(pwd)
+if [ ! -d logs-$DOTPROCPID ]; then
+    mkdir -p logs-$DOTPROCPID;
+fi;
+getCatHome1=$(ps ax | grep $install)
+getCatHome2=${getCatHome1#*\Dcatalina.home=}
+getCatHome3=${getCatHome2%%-Djava.io.tmpdir*}
+DOTHOME=$( echo "${getCatHome3}" | sed -e "s/^\ *//g" -e "s/\ *$//g")
 #ADMINUSER=$2
 #ADMINPASS=$3
 HOSTNAME=$(hostname)
-TOMCATVERSION=$(ls $BASEDIR/dotserver | grep "tomcat*")
+TOMCATVERSION=${DOTHOME#*\dotserver\/}
 RUNDATE=$(date +"%Y%m%d-%H%M%S")
-DOTHOME=$BASEDIR/dotserver/$TOMCATVERSION
 LOGFOLDER=logs-$DOTPROCPID
 SYSLOGFILE=$LOGFOLDER/di-system-$HOSTNAME-$RUNDATE.txt
 DOTLOGFILE=$LOGFOLDER/di-dotcms-$HOSTNAME-$RUNDATE.txt
@@ -80,7 +83,7 @@ function getDB {
 	    DB="OTHER"
 		echo "Database not supported in this script"
 	fi
-	cd $BASEDIR
+
 }
 
 function getOS {
@@ -212,16 +215,18 @@ fi
 function getVersion {
 	echo -e "\n# Version:" 
 	ls $DOTHOME/webapps/ROOT/WEB-INF/lib/dotcms*jar
+	echo -e "\n# Tomcat Version:" 
+	echo $TOMCATVERSION
 }
 
 function getJVMInfo {
 	echo -e "\n# JVM INFORMATION AND MEMORY ALLOCATION:" 
-	sudo -u dotcms jps -v
+	sudo -u $DOTOWNER jps -v
 }
 
 function getDotCMSMem {
 	echo -e "\n# Memory Info:" 
-	pidof java  | xargs ps -o rss,sz,vsz
+	echo $DOTPROCPID  | xargs ps -o rss,sz,vsz
 }
 
 function getIndexList {
@@ -260,7 +265,7 @@ function getJavaDump {
 	#this should loop several times to get an idea of what's really going on
 	echo -e "\n#Java thread dump located at logs/javadump.txt" 
 	PID=$(pgrep -o -x java)
-	sudo -u dotcms jstack $PID >> $LOGFOLDER/javadump.txt
+	sudo -u $DOTOWNER jstack $PID >> $LOGFOLDER/javadump.txt
 }
 
 function getPushConfig {
@@ -303,8 +308,8 @@ getIndexList
 getConfigFiles
 getPlugins
 getJavaDump
-getPushConfig
-getCacheStats
+#getPushConfig
+#getCacheStats
 getAssetsInfo
 getGCInfo
 
