@@ -12,7 +12,6 @@
 #	db threads
 # 	db locks
 #	use mktemp for setup of log storage space
-#	/proc/${PID}/smaps, /proc/${PID}/status, and /proc/${PID}/stat
 
 #TEST COMMANDS
 command -v awk >/dev/null 2>&1 || { echo >&2 "awk is not installed.  Ending."; exit 1; }	
@@ -37,8 +36,8 @@ getCatHome1=$(ps ax | grep $install)
 getCatHome2=${getCatHome1#*\Dcatalina.home=}
 getCatHome3=${getCatHome2%%/tomcat*}
 DOTHOME=$( echo "${getCatHome3}" | sed -e "s/^\ *//g" -e "s/\ *$//g")
-#ADMINUSER=$2
-#ADMINPASS=$3
+#ADMINUSER=$1
+#ADMINPASS=$2
 HOSTNAME=$(hostname)
 TOMCATVERSION=${DOTHOME#*\dotserver\/}
 RUNDATE=$(date +"%Y%m%d-%H%M%S")
@@ -216,6 +215,14 @@ function getVersion {
 	ls $DOTHOME/dotCMS/WEB-INF/lib/dotcms*jar
 }
 
+function getProcessInfo {
+	echo -e "\n# Process smap:" 
+	cat /proc/$DOTPROCPID/smaps
+	echo -e "\n# Process status:" 
+	cat /proc/$DOTPROCPID/status
+	echo -e "\n# Process stats:"
+	cat /proc/$DOTPROCPID/stat
+}
 function getJVMInfo {
 	echo -e "\n# JVM INFORMATION AND MEMORY ALLOCATION:" 
 	sudo -u dotcms jps -v
@@ -297,6 +304,7 @@ function getGCInfo {
 echo "dotCMS Inspector Run: " $RUNDATE 
 echo -e "\n\n##### dotCMS INFORMATION #####" 
 getVersion
+getProcessInfo
 getJVMInfo
 getDotCMSMem
 getIndexList
