@@ -13,6 +13,7 @@
 # 	db locks
 #	use mktemp for setup of log storage space
 #	/proc/${PID}/smaps, /proc/${PID}/status, and /proc/${PID}/stat
+#	display message if no dotcms running
 
 #TEST COMMANDS
 command -v awk >/dev/null 2>&1 || { echo >&2 "awk is not installed.  Ending."; exit 1; }	
@@ -25,12 +26,12 @@ command -v netstat >/dev/null 2>&1 || skipNetStat=true
 command -v lspci >/dev/null 2>&1 || skipVM=true
 command -v tee >/dev/null 2>&1 || skipTee=true
 
+#check for command line args to run specific test that are off by default
+
 for install in $(ps aux | grep java | grep dotserver | grep org.apache.catalina.startup.Bootstrap | awk '{ print $2 }'); do
 
 DOTPROCPID=$install
 DOTOWNER=$(ps aux | grep -v grep | grep $install | awk '{ print $1}')
-echo "DOTOWNER: " $DOTOWNER
-
 if [ ! -d logs-$DOTPROCPID ]; then
     mkdir -p logs-$DOTPROCPID;
 fi;
@@ -52,6 +53,13 @@ DOTLOGFILE=$LOGFOLDER/di-dotcms-$HOSTNAME-$RUNDATE.txt
 #DBUSER=${DBU1%\"\ pa*}
 #DBP1=${DBX#*word=\"}
 #DBPASS=${DBP1%\"\ maxAc*}
+
+#check if this loop is 3.x version of dotcms, if not skip to next in loop
+#$DOTVERSIONCHECK=$(ls $DOTHOME/webapps/ROOT/WEB-INF/lib/dotcms*jar) | sed -r 's/^.*_([0-9.]+)\..*/\1/' )
+#if [ $DOTVERSIONCHECK == 2 ]; then
+#   echo "Found 2.x dotcms instance running, skipping"
+#   continue;
+#fi
 
 if [ skipTee != true ]
 	then 
@@ -219,6 +227,14 @@ function getVersion {
 	echo $TOMCATVERSION
 }
 
+function getProcessInfo {
+	echo -e "\n# Process smap:" 
+	cat /proc/$DOTPROCPID/smaps
+	echo -e "\n# Process status:" 
+	cat /proc/$DOTPROCPID/status
+	echo -e "\n# Process stats:"
+	cat /proc/$DOTPROCPID/stat
+}
 function getJVMInfo {
 	echo -e "\n# JVM INFORMATION AND MEMORY ALLOCATION:" 
 	sudo -u $DOTOWNER jps -v
@@ -302,6 +318,7 @@ function getGCInfo {
 echo "dotCMS Inspector Run: " $RUNDATE 
 echo -e "\n\n##### dotCMS INFORMATION #####" 
 getVersion
+getProcessInfo
 getJVMInfo
 getDotCMSMem
 getIndexList
