@@ -2,7 +2,7 @@
 
 #################
 #tool for dotcms-inspectoring sys, db, and dotcms specific info for analysis
-#v 0.1
+#v 1.0
 #Matt Yarbrough
 #dotCMS
 ###################
@@ -12,6 +12,7 @@
 #	db threads
 # 	db locks
 #	use mktemp for setup of log storage space
+
 
 #TEST COMMANDS
 command -v awk >/dev/null 2>&1 || { echo >&2 "awk is not installed.  Ending."; exit 1; }	
@@ -36,6 +37,16 @@ getCatHome1=$(ps ax | grep $install)
 getCatHome2=${getCatHome1#*\Dcatalina.home=}
 getCatHome3=${getCatHome2%%/tomcat*}
 DOTHOME=$( echo "${getCatHome3}" | sed -e "s/^\ *//g" -e "s/\ *$//g")
+#skip non 2.x instances
+if [ ! -f $DOTHOME/dotCMS/WEB-INF/lib/dotcms_2*jar ]
+then
+echo "this pid does not have a 2.x jar"
+echo "PID="$DOTPROCPID
+continue
+fi
+
+if blah continue
+
 #ADMINUSER=$1
 #ADMINPASS=$2
 HOSTNAME=$(hostname)
@@ -212,7 +223,7 @@ fi
 #DOTCMS FUNCTIONS
 function getVersion {
 	echo -e "\n# Version:" 
-	ls $DOTHOME/dotCMS/WEB-INF/lib/dotcms*jar
+	ls $DOTHOME/webapps/ROOT/WEB-INF/lib/dotcms*jar
 }
 
 function getProcessInfo {

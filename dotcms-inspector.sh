@@ -2,7 +2,7 @@
 
 #################
 #tool for dotcms-inspectoring sys, db, and dotcms specific info for analysis
-#v 0.1
+#v 1.0
 #Matt Yarbrough
 #dotCMS
 ###################
@@ -13,7 +13,7 @@
 # 	db locks
 #	use mktemp for setup of log storage space
 #	/proc/${PID}/smaps, /proc/${PID}/status, and /proc/${PID}/stat
-#	display message if no dotcms running
+
 
 #TEST COMMANDS
 command -v awk >/dev/null 2>&1 || { echo >&2 "awk is not installed.  Ending."; exit 1; }	
@@ -39,6 +39,13 @@ getCatHome1=$(ps ax | grep $install)
 getCatHome2=${getCatHome1#*\Dcatalina.home=}
 getCatHome3=${getCatHome2%%-Djava.io.tmpdir*}
 DOTHOME=$( echo "${getCatHome3}" | sed -e "s/^\ *//g" -e "s/\ *$//g")
+#skip non 3.x instances
+if [ ! -f $DOTHOME/webapps/ROOT/WEB-INF/lib/dotcms_3*.jar ]
+then
+echo "this pid does not have a 3.x jar"
+echo "PID="$DOTPROCPID
+continue
+fi
 #ADMINUSER=$2
 #ADMINPASS=$3
 HOSTNAME=$(hostname)
@@ -54,12 +61,6 @@ DOTLOGFILE=$LOGFOLDER/di-dotcms-$HOSTNAME-$RUNDATE.txt
 #DBP1=${DBX#*word=\"}
 #DBPASS=${DBP1%\"\ maxAc*}
 
-#check if this loop is 3.x version of dotcms, if not skip to next in loop
-#$DOTVERSIONCHECK=$(ls $DOTHOME/webapps/ROOT/WEB-INF/lib/dotcms*jar) | sed -r 's/^.*_([0-9.]+)\..*/\1/' )
-#if [ $DOTVERSIONCHECK == 2 ]; then
-#   echo "Found 2.x dotcms instance running, skipping"
-#   continue;
-#fi
 
 if [ skipTee != true ]
 	then 
