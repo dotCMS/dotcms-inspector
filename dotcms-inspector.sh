@@ -76,23 +76,7 @@ echo "JAVA_HOME: " $JAVA_HOME
 function getDB {
 	#what database are we?
 	echo -e  "\n\n##### DATABASE INFORMATION #####"
-	PG="$(grep '<\!--\ POSTGRESQL -->' $DOTHOME/webapps/ROOT/META-INF/context.xml)"
-	MY="$(grep '<\!--\ MYSQL UTF8 -->' $DOTHOME/webapps/ROOT/META-INF/context.xml)"
-
-	cd utils
-	if [ "$PG" ]
-	  then
-	    DB="POSTGRESQL"
-		echo "Postgres"
-	elif [ "$MY" ]
-	  then
-	    DB="MYSQL"
-		echo "Mysql"
-	else
-	    DB="OTHER"
-		echo "Database not supported in this script"
-	fi
-
+	echo "$(grep 'Using database: ' dotserver/tomcat-8.0.18/webapps/ROOT/dotsecure/logs/dotcms.log)"
 }
 
 function getOS {
