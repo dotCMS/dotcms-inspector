@@ -37,8 +37,9 @@ if [ ! -d logs-$DOTPROCPID ]; then
 fi;
 getCatHome1=$(ps ax | grep $install)
 getCatHome2=${getCatHome1#*\Dcatalina.home=}
-getCatHome3=${getCatHome2%%-Djava.io.tmpdir*}
-DOTHOME=$( echo "${getCatHome3}" | sed -e "s/^\ *//g" -e "s/\ *$//g")
+DOTHOME=${getCatHome2%%-Djava.io.tmpdir*}
+DOTROOT=${DOTHOME%%/dotserver*}
+
 #skip non 3.x instances
 if [ ! -f $DOTHOME/webapps/ROOT/WEB-INF/lib/dotcms_3*.jar ]
 then
@@ -74,7 +75,6 @@ echo "JAVA_HOME: " $JAVA_HOME
 
 #SYSTEM FUNCTIONS
 function getDB {
-	#what database are we?
 	echo -e  "\n\n##### DATABASE INFORMATION #####"
 	echo "$(grep 'Using database: ' dotserver/tomcat-8.0.18/webapps/ROOT/dotsecure/logs/dotcms.log)"
 }
@@ -240,24 +240,24 @@ function getIndexList {
 function getConfigFiles {
 	echo -e "\n# Config and log are located in the logs folder" 
 
-	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/dotmarketing-config.properties $LOGFOLDER
+	cp $DOTROOT/dotserver/tomcat-8.0.18/webapps/ROOT/WEB-INF/classes/dotmarketing-config.properties $LOGFOLDER
 
-	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/portal.properties $LOGFOLDER
+	cp  $DOTROOT/dotserver/tomcat-8.0.18/webapps/ROOT/WEB-INF/classes/portal.properties $LOGFOLDER
 	
-	cp $DOTHOME/webapps/ROOT/WEB-INF/classes/dotcms-config-cluster.properties  $LOGFOLDER
+	cp  $DOTROOT/dotserver/tomcat-8.0.18/webapps/ROOT/WEB-INF/classes/dotcms-config-cluster.properties  $LOGFOLDER
 
-	cp $DOTHOME/conf/server.xml $LOGFOLDER
+	cp  $DOTROOT/dotserver/tomcat-8.0.18/conf/server.xml $LOGFOLDER
 
-	cp $DOTHOME/webapps/ROOT/dotsecure/logs/dotcms.log  $LOGFOLDER
+	cp  $DOTROOT/dotserver/tomcat-8.0.18/webapps/ROOT/dotsecure/logs/dotcms.log  $LOGFOLDER
 	
-	cp $DOTHOME/conf/web.xml $LOGFOLDER
+	cp  $DOTROOT/dotserver/tomcat-8.0.18/conf/web.xml $LOGFOLDER
 	
 }
 
 function getPlugins {
-	#find -f on plugins, maybe tarball them, exclude build folder
 	echo -e "\n# Static Plugins:" 
 	ls  $DOTHOME/webapps/ROOT/WEB-INF/lib
+	tar -cvzf staticplugins.tgz $DOTROOT/plugins
 	echo -e "\n# Dynamic Plugins: "
 	ls $DOTHOME/webapps/ROOT/WEB-INF/felix/load
 }
@@ -315,9 +315,9 @@ getJavaDump
 getAssetsInfo
 getGCInfo
 
-tar -czf "di-$HOSTNAME-PROC$DOTPROCPID-$RUNDATE.tgz" $LOGFOLDER
+tar -czf "di-$HOSTNAME-PROC$DOTPROCPID-$RUNDATE.tgz" $LOGFOLDER staticplugins.tgz
 
-rm -Rf $LOGFOLDER
+rm -Rf $LOGFOLDER staticplugins.tgz
 
 done
 exit
